@@ -31,14 +31,18 @@ public class ventaService {
 
     // CREAR VENTA
     public venta crearVenta(VentaSolicitudDTO dto){
+
         // CONSULTAR MOTO
         MotoDto moto = motoClient.obtenerMoto(dto.getIdMoto());
+
         // VALIDAR MOTO
         if(moto == null){
             throw new RuntimeException("Moto no encontrada");
         }
+
         // CONSULTAR INVENTARIO
-        InventarioDTO inventario = inventarioClient.obtenerInventario(dto.getIdMoto());
+        InventarioDTO inventario =
+                inventarioClient.obtenerInventario(dto.getIdMoto());
 
         // VALIDAR INVENTARIO
         if(inventario == null){
@@ -47,8 +51,9 @@ public class ventaService {
 
         // VALIDAR STOCK
         if(inventario.getStock() <= 0){
-            throw new RuntimeException("No hay stock");
+            throw new RuntimeException("No hay stock disponible");
         }
+
         // CREAR PAGO
         PagoDTO pago = new PagoDTO();
         pago.setMonto(moto.getPrecio());
@@ -56,20 +61,40 @@ public class ventaService {
         // ENVIAR A PAYMENT-SERVICE
         pagoClient.procesar(pago);
 
-        // CREAR VENTA
-        venta venta = new venta();
-        venta.setIdCliente(dto.getIdCliente());
-        venta.setIdMoto(dto.getIdMoto());
+        // DESCONTAR STOCK
+        inventario.setStock(inventario.getStock() - 1);
 
-        // TOTAL DESDE MOTO-SERVICE
-        venta.setTotal(moto.getPrecio());
-        venta.setEstado("PAGADO");
-        venta.setFechaVenta(LocalDate.now());
-        return repository.save(venta);
+        // ACTUALIZAR INVENTARIO
+        inventarioClient.actualizarInventario(
+                inventario.getId(),
+                inventario
+        );
+
+        // CREAR VENTA
+        venta nuevaVenta = new venta();
+
+        nuevaVenta.setIdCliente(dto.getIdCliente());
+        nuevaVenta.setIdMoto(dto.getIdMoto());
+        nuevaVenta.setTotal(moto.getPrecio());
+        nuevaVenta.setEstado("PAGADO");
+        nuevaVenta.setFechaVenta(LocalDate.now());
+
+        // GUARDAR VENTA
+        return repository.save(nuevaVenta);
     }
 
     // LISTAR
     public List<venta> listar(){
         return repository.findAll();
+    }
+
+    // BUSCAR POR ID
+    public venta buscarPorId(Long id){
+        return repository.findById(id).orElse(null);
+    }
+
+    // ELIMINAR
+    public void eliminar(Long id){
+        repository.deleteById(id);
     }
 }
