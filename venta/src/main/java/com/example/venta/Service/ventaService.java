@@ -1,5 +1,7 @@
 package com.example.venta.Service;
 
+import java.time.LocalDate;
+
 import org.springframework.stereotype.Service;
 
 import com.example.venta.Client.InventarioFeingClient;
@@ -17,19 +19,42 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class ventaService {
-    private ventaRepository repository;
-    private MotoFeingClient motoClient;
-    private InventarioFeingClient InventarioClient;
-    private PagoFeingClient pagoClient;
+    private final ventaRepository repository;
+    private final MotoFeingClient motoClient;
+    private final InventarioFeingClient inventarioClient;
+    private final PagoFeingClient pagoClient;
 public venta crearVenta(VentaSolicitudDTO dto){    
 
 
     MotoDto moto=motoClient.obtenerMoto(dto.getIdMoto());
-    InventarioDTO inventario = InventarioClient.obtenerInventario(dto.getIdMoto());
+    InventarioDTO inventario = inventarioClient.obtenerInventario(dto.getIdMoto());
+      if(inventario.getStock() <= 0){
+
+            throw new RuntimeException(
+                    "No hay stock"
+            );
+        }
     PagoDTO pago = new PagoDTO();
     pago.setMonto(moto.getPrecio());
     pagoClient.procesar(pago);
-return null;
+      venta venta = new venta();
+      
+        venta.setIdCliente(dto.getIdCliente()
+        );
+
+        venta.setIdMoto(dto.getIdMoto()
+        );
+
+        venta.setTotal(moto.getPrecio()
+        );
+
+        venta.setEstado("PAGADO"
+        );
+
+        venta.setFechaVenta(LocalDate.now()
+        );
+
+return repository.save(venta);
 }
 
 }
