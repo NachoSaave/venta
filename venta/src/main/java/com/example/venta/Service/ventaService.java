@@ -55,6 +55,8 @@ public venta crearVenta(
                 moto.getPrecio()
         );
 
+
+
         return repository.save(
                 venta
         );
