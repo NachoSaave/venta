@@ -3,7 +3,9 @@ package com.example.venta.Controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,26 +18,43 @@ import com.example.venta.Service.ventaService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/ventas")
+@RequestMapping("/ventas")
 @RequiredArgsConstructor
 public class ventaController {
 
-    private final ventaService service;
+    private final ventaService ventaService;
 
     @PostMapping
-    public ResponseEntity<venta> crearVenta(
-            @RequestBody VentaSolicitudDTO dto){
+    public ResponseEntity<venta> guardar(
+            @RequestBody VentaSolicitudDTO dto) {
 
         return ResponseEntity.ok(
-                service.crearVenta(dto)
+                ventaService.guardarVenta(dto)
         );
     }
 
     @GetMapping
-    public ResponseEntity<List<venta>> listar(){
+    public ResponseEntity<List<venta>> listar() {
 
         return ResponseEntity.ok(
-                service.listar()
+                ventaService.listarVentas()
         );
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<venta> buscar(@PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                ventaService.buscarPorId(id)
+        );
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> eliminar(
+            @PathVariable Long id) {
+
+        ventaService.eliminarVenta(id);
+
+        return ResponseEntity.ok("Venta eliminada");
     }
 }

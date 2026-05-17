@@ -4,13 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.example.venta.Client.InventarioFeingClient;
-import com.example.venta.Client.MotoFeingClient;
-import com.example.venta.Client.PagoFeingClient;
 import com.example.venta.Model.venta;
-import com.example.venta.Model.Dto.InventarioDTO;
-import com.example.venta.Model.Dto.MotoDto;
-import com.example.venta.Model.Dto.PagoDTO;
 import com.example.venta.Model.Dto.VentaSolicitudDTO;
 import com.example.venta.Repository.ventaRepository;
 
@@ -19,54 +13,31 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class ventaService {
-    private final ventaRepository repository;
-    private final MotoFeingClient motoClient;
-    private final InventarioFeingClient inventarioClient;
-    private final PagoFeingClient pagoClient;
-public venta crearVenta(
-            VentaSolicitudDTO dto){
-        MotoDto moto =motoClient.obtenerMoto(dto.getIdMoto()); 
 
-        InventarioDTO inventario =inventarioClient.obtenerInventario( dto.getIdMoto());
+    private final ventaRepository ventaRepository;
 
-        if(inventario.getStock() <= 0){
-            throw new RuntimeException("No hay stock");
-        }
-        PagoDTO pago =new PagoDTO();
+    public venta guardarVenta(VentaSolicitudDTO dto) {
 
-        pago.setMonto(moto.getPrecio()
-        );
+        venta venta = new venta();
 
-        pagoClient.procesar(pago
-        );
+        venta.setIdCliente(dto.getIdCliente());
+        venta.setIdMoto(dto.getIdMoto());
+        venta.setTotal(dto.getTotal());
+        venta.setEstado("PENDIENTE");
 
-        venta venta =
-                new venta();
-
-        venta.setIdCliente(
-                dto.getIdCliente()
-        );
-
-        venta.setIdMoto(
-                dto.getIdMoto()
-        );
-
-        venta.setTotal(
-                moto.getPrecio()
-        );
-
-
-
-        return repository.save(
-                venta
-        );
+        return ventaRepository.save(venta);
     }
 
-    public List<venta> listar(){
+    public List<venta> listarVentas() {
+        return ventaRepository.findAll();
+    }
 
-        return repository.findAll();
+    public venta buscarPorId(Long id) {
+        return ventaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+    }
+
+    public void eliminarVenta(Long id) {
+        ventaRepository.deleteById(id);
     }
 }
-
-
-

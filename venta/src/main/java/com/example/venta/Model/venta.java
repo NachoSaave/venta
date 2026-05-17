@@ -31,4 +31,5 @@ public class venta {
     private String estado;
 
     private LocalDate fechaVenta;
+    
 }
