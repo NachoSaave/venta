@@ -24,6 +24,7 @@ public class ventaService {
         venta.setIdMoto(dto.getIdMoto());
         venta.setTotal(dto.getTotal());
         venta.setEstado("PENDIENTE");
+        venta.setFechaVenta(java.time.LocalDate.now());
 
         return ventaRepository.save(venta);
     }

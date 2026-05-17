@@ -10,5 +10,5 @@ CREATE TABLE ventas (
 
     estado VARCHAR(50),
 
-    fecha_venta DATE
+    fecha_venta DATE DEFAULT (CURRENT_DATE)
 );
