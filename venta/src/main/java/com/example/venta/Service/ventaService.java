@@ -1,6 +1,6 @@
 package com.example.venta.Service;
 
-import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 
@@ -23,39 +23,48 @@ public class ventaService {
     private final MotoFeingClient motoClient;
     private final InventarioFeingClient inventarioClient;
     private final PagoFeingClient pagoClient;
-public venta crearVenta(VentaSolicitudDTO dto){    
+public venta crearVenta(
+            VentaSolicitudDTO dto){
+        MotoDto moto =motoClient.obtenerMoto(dto.getIdMoto()); 
 
+        InventarioDTO inventario =inventarioClient.obtenerInventario( dto.getIdMoto());
 
-    MotoDto moto=motoClient.obtenerMoto(dto.getIdMoto());
-    InventarioDTO inventario = inventarioClient.obtenerInventario(dto.getIdMoto());
-      if(inventario.getStock() <= 0){
-
-            throw new RuntimeException(
-                    "No hay stock"
-            );
+        if(inventario.getStock() <= 0){
+            throw new RuntimeException("No hay stock");
         }
-    PagoDTO pago = new PagoDTO();
-    pago.setMonto(moto.getPrecio());
-    pagoClient.procesar(pago);
-      venta venta = new venta();
-      
-        venta.setIdCliente(dto.getIdCliente()
+        PagoDTO pago =new PagoDTO();
+
+        pago.setMonto(moto.getPrecio()
         );
 
-        venta.setIdMoto(dto.getIdMoto()
+        pagoClient.procesar(pago
         );
 
-        venta.setTotal(moto.getPrecio()
+        venta venta =
+                new venta();
+
+        venta.setIdCliente(
+                dto.getIdCliente()
         );
 
-        venta.setEstado("PAGADO"
+        venta.setIdMoto(
+                dto.getIdMoto()
         );
 
-        venta.setFechaVenta(LocalDate.now()
+        venta.setTotal(
+                moto.getPrecio()
         );
 
-return repository.save(venta);
+        return repository.save(
+                venta
+        );
+    }
+
+    public List<venta> listar(){
+
+        return repository.findAll();
+    }
 }
 
-}
+
 
