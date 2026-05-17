@@ -22,11 +22,8 @@ import lombok.RequiredArgsConstructor;
 public class ventaService {
 
     private final ventaRepository repository;
-
     private final MotoFeingClient motoClient;
-
     private final InventarioFeingClient inventarioClient;
-
     private final PagoFeingClient pagoClient;
 
     // CREAR VENTA
@@ -35,7 +32,6 @@ public class ventaService {
         // CONSULTAR MOTO
         MotoDto moto = motoClient.obtenerMoto(dto.getIdMoto());
 
-        // VALIDAR MOTO
         if(moto == null){
             throw new RuntimeException("Moto no encontrada");
         }
@@ -44,7 +40,6 @@ public class ventaService {
         InventarioDTO inventario =
                 inventarioClient.obtenerInventario(dto.getIdMoto());
 
-        // VALIDAR INVENTARIO
         if(inventario == null){
             throw new RuntimeException("Inventario no encontrado");
         }
@@ -54,33 +49,41 @@ public class ventaService {
             throw new RuntimeException("No hay stock disponible");
         }
 
-        // CREAR PAGO
-        PagoDTO pago = new PagoDTO();
-        pago.setMonto(moto.getPrecio());
-
-        // ENVIAR A PAYMENT-SERVICE
-        pagoClient.procesar(pago);
-
-        // DESCONTAR STOCK
-        inventario.setStock(inventario.getStock() - 1);
-
-        // ACTUALIZAR INVENTARIO
-        inventarioClient.actualizarInventario(
-                inventario.getId(),
-                inventario
-        );
-
-        // CREAR VENTA
+        // CREAR VENTA EN ESTADO PENDIENTE
         venta nuevaVenta = new venta();
 
         nuevaVenta.setIdCliente(dto.getIdCliente());
         nuevaVenta.setIdMoto(dto.getIdMoto());
         nuevaVenta.setTotal(moto.getPrecio());
-        nuevaVenta.setEstado("PAGADO");
+        nuevaVenta.setEstado("PENDIENTE");
         nuevaVenta.setFechaVenta(LocalDate.now());
 
-        // GUARDAR VENTA
-        return repository.save(nuevaVenta);
+        venta ventaGuardada = repository.save(nuevaVenta);
+
+        // CREAR PAGO
+        PagoDTO pago = new PagoDTO();
+        pago.setMonto(moto.getPrecio());
+        pago.setMetodoPago("TARJETA");
+        pago.setSaleId(ventaGuardada.getId());
+
+        PagoDTO respuestaPago = pagoClient.procesar(pago);
+
+        if(!respuestaPago.getEstado().equals("APROBADO")){
+            throw new RuntimeException("Pago rechazado");
+        }
+
+        // DESCONTAR STOCK
+        inventario.setStock(inventario.getStock() - 1);
+
+        inventarioClient.actualizarInventario(
+                inventario.getIdMoto(),
+                inventario
+        );
+
+        // ACTUALIZAR VENTA A PAGADA
+        ventaGuardada.setEstado("PAGADO");
+
+        return repository.save(ventaGuardada);
     }
 
     // LISTAR
