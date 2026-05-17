@@ -11,7 +11,7 @@ import com.example.venta.Model.Dto.MotoDto;
         url="localhost:8082"
 )
 public interface MotoFeingClient {
-    @GetMapping("/api/motos/{id}")
+    @GetMapping("/api/v1/motos/{id}")
      MotoDto obtenerMoto(@PathVariable Long id);
 
 }

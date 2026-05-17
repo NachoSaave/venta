@@ -5,5 +5,5 @@ import org.springframework.stereotype.Repository;
 
 import com.example.venta.Model.venta;
 @Repository
-public interface ventaRepository   extends JpaRepository<venta,Long>{
+public interface ventaRepository extends JpaRepository<venta,Long>{
 }

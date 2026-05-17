@@ -11,6 +11,6 @@ import com.example.venta.Model.Dto.InventarioDTO;
         url="localhost:8083"
 )
 public interface InventarioFeingClient {
-    @GetMapping("/api/inventario/{idMoto}")
+    @GetMapping("/api/v1/inventory/{idMoto}")
     InventarioDTO obtenerInventario(@PathVariable Long idMoto);
 }

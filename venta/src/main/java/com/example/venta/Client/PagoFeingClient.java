@@ -12,7 +12,7 @@ import com.example.venta.Model.Dto.PagoDTO;
 )
 public interface PagoFeingClient {
 
-    @PostMapping("/api/pagos")
+    @PostMapping("/api/v1/pagos")
     PagoDTO procesar(
             @RequestBody PagoDTO pago
     );
