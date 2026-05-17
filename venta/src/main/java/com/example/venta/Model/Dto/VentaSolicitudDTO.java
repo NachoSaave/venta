@@ -11,6 +11,6 @@ public class VentaSolicitudDTO {
     private Long idCliente;
 
     private Long idMoto;
-
+    
     private Double total;
 }
