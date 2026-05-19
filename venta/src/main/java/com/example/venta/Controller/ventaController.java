@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.venta.Model.venta;
 import com.example.venta.Model.Dto.VentaSolicitudDTO;
+import com.example.venta.Model.venta;
 import com.example.venta.Service.ventaService;
 
 import lombok.RequiredArgsConstructor;
@@ -18,52 +18,36 @@ public class ventaController {
 
     private final ventaService service;
 
-    // CREAR VENTA
     @PostMapping
-    public ResponseEntity<?> crearVenta(
-            @RequestBody VentaSolicitudDTO dto){
-
-        try{
-            venta nuevaVenta = service.crearVenta(dto);
-            return ResponseEntity.ok(nuevaVenta);
-
-        } catch (RuntimeException e){
-
-            return ResponseEntity.badRequest()
-                    .body(e.getMessage());
+    public ResponseEntity<?> crearVenta(@RequestBody VentaSolicitudDTO dto) {
+        try {
+            venta nueva = service.crearVenta(dto);
+            return ResponseEntity.ok(nueva);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    // LISTAR VENTAS
     @GetMapping
-    public ResponseEntity<List<venta>> listar(){
-
+    public ResponseEntity<List<venta>> listar() {
         return ResponseEntity.ok(service.listar());
     }
 
-    // BUSCAR POR ID
     @GetMapping("/{id}")
-    public ResponseEntity<?> buscarPorId(
-            @PathVariable Long id){
+    public ResponseEntity<?> buscar(@PathVariable Long id) {
 
-        venta venta = service.buscarPorId(id);
+        venta v = service.buscarPorId(id);
 
-        if(venta == null){
-            return ResponseEntity
-                    .badRequest()
-                    .body("Venta no encontrada");
+        if (v == null) {
+            return ResponseEntity.badRequest().body("No encontrada");
         }
 
-        return ResponseEntity.ok(venta);
+        return ResponseEntity.ok(v);
     }
 
-    // ELIMINAR
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> eliminar(
-            @PathVariable Long id){
-
+    public ResponseEntity<String> eliminar(@PathVariable Long id) {
         service.eliminar(id);
-
-        return ResponseEntity.ok("Venta eliminada");
+        return ResponseEntity.ok("Eliminada");
     }
 }

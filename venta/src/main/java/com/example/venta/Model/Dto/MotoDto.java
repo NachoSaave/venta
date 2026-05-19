@@ -1,10 +1,7 @@
 package com.example.venta.Model.Dto;
 
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-@Setter
+import lombok.Data;
+@Data
 public class MotoDto {
     private Long id;
     private String marca;

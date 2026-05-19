@@ -2,11 +2,8 @@ package com.example.venta.Model.Dto;
 
 import lombok.Data;
 @Data
-public class InventarioDTO {
-
+public class ClienteDTO {
     private Long id;
-
-    private Long idMoto;
-
-    private Integer stock;
+    private String nombre;
+    private String telefono;
 }

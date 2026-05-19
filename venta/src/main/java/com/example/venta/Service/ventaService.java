@@ -5,14 +5,9 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.example.venta.Client.InventarioFeingClient;
-import com.example.venta.Client.MotoFeingClient;
-import com.example.venta.Client.PagoFeingClient;
+import com.example.venta.Client.*;
+import com.example.venta.Model.Dto.*;
 import com.example.venta.Model.venta;
-import com.example.venta.Model.Dto.InventarioDTO;
-import com.example.venta.Model.Dto.MotoDto;
-import com.example.venta.Model.Dto.PagoDTO;
-import com.example.venta.Model.Dto.VentaSolicitudDTO;
 import com.example.venta.Repository.ventaRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -25,31 +20,39 @@ public class ventaService {
     private final MotoFeingClient motoClient;
     private final InventarioFeingClient inventarioClient;
     private final PagoFeingClient pagoClient;
+    private final ClienteFeignClient clienteClient;
 
-    // CREAR VENTA
-    public venta crearVenta(VentaSolicitudDTO dto){
+    public venta crearVenta(VentaSolicitudDTO dto) {
 
-        // CONSULTAR MOTO
+        // CLIENTE
+        ClienteDTO cliente;
+
+        try {
+            cliente = clienteClient.obtenerCliente(dto.getIdCliente());
+        } catch (Exception e) {
+            throw new RuntimeException("Cliente no encontrado");
+        }
+
+        // MOTO
         MotoDto moto = motoClient.obtenerMoto(dto.getIdMoto());
 
-        if(moto == null){
+        if (moto == null) {
             throw new RuntimeException("Moto no encontrada");
         }
 
-        // CONSULTAR INVENTARIO
+        // INVENTARIO
         InventarioDTO inventario =
                 inventarioClient.obtenerInventario(dto.getIdMoto());
 
-        if(inventario == null){
+        if (inventario == null) {
             throw new RuntimeException("Inventario no encontrado");
         }
 
-        // VALIDAR STOCK
-        if(inventario.getStock() <= 0){
-            throw new RuntimeException("No hay stock disponible");
+        if (inventario.getStock() <= 0) {
+            throw new RuntimeException("Sin stock disponible");
         }
 
-        // CREAR VENTA EN ESTADO PENDIENTE
+        // CREAR VENTA
         venta nuevaVenta = new venta();
 
         nuevaVenta.setIdCliente(dto.getIdCliente());
@@ -60,15 +63,20 @@ public class ventaService {
 
         venta ventaGuardada = repository.save(nuevaVenta);
 
-        // CREAR PAGO
+        // CREAR PAGO 
         PagoDTO pago = new PagoDTO();
+
+        pago.setSaleId(ventaGuardada.getId());
         pago.setMonto(moto.getPrecio());
         pago.setMetodoPago("TARJETA");
-        pago.setSaleId(ventaGuardada.getId());
+
+        pago.setClienteId(cliente.getId());
+        pago.setClienteNombre(cliente.getNombre());
+        pago.setClienteTelefono(cliente.getTelefono());
 
         PagoDTO respuestaPago = pagoClient.procesar(pago);
 
-        if(!respuestaPago.getEstado().equals("APROBADO")){
+        if (!respuestaPago.getEstado().equals("APROBADO")) {
             throw new RuntimeException("Pago rechazado");
         }
 
@@ -80,24 +88,21 @@ public class ventaService {
                 inventario
         );
 
-        // ACTUALIZAR VENTA A PAGADA
+        //  FINALIZAR VENTA
         ventaGuardada.setEstado("PAGADO");
 
         return repository.save(ventaGuardada);
     }
 
-    // LISTAR
-    public List<venta> listar(){
+    public List<venta> listar() {
         return repository.findAll();
     }
 
-    // BUSCAR POR ID
-    public venta buscarPorId(Long id){
+    public venta buscarPorId(Long id) {
         return repository.findById(id).orElse(null);
     }
 
-    // ELIMINAR
-    public void eliminar(Long id){
+    public void eliminar(Long id) {
         repository.deleteById(id);
     }
 }
